@@ -2,6 +2,7 @@ use crate::get_or_null;
 
 use super::{ExecuteResult, Pool, TableRow, RECORDS_LIMIT_PER_PAGE};
 use async_trait::async_trait;
+use bigdecimal::BigDecimal;
 use chrono::{NaiveDate, NaiveDateTime, NaiveTime};
 use database_tree::{Child, Database, Schema, Table};
 use futures::TryStreamExt;
@@ -18,7 +19,7 @@ impl PostgresPool {
     pub async fn new(database_url: &str) -> anyhow::Result<Self> {
         Ok(Self {
             pool: PgPoolOptions::new()
-                .connect_timeout(Duration::from_secs(5))
+                .acquire_timeout(Duration::from_secs(5))
                 .connect(database_url)
                 .await?,
         })
@@ -518,7 +519,7 @@ fn convert_column_value_to_string(row: &PgRow, column: &PgColumn) -> anyhow::Res
         let value: Option<i64> = value;
         Ok(get_or_null!(value))
     } else if let Ok(value) = row.try_get(column_name) {
-        let value: Option<rust_decimal::Decimal> = value;
+        let value: Option<BigDecimal> = value;
         Ok(get_or_null!(value))
     } else if let Ok(value) = row.try_get(column_name) {
         let value: Option<&[u8]> = value;

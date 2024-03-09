@@ -2,6 +2,7 @@ use crate::get_or_null;
 
 use super::{ExecuteResult, Pool, TableRow, RECORDS_LIMIT_PER_PAGE};
 use async_trait::async_trait;
+use bigdecimal::BigDecimal;
 use chrono::{NaiveDate, NaiveDateTime, NaiveTime};
 use database_tree::{Child, Database, Table};
 use futures::TryStreamExt;
@@ -17,7 +18,7 @@ impl MySqlPool {
     pub async fn new(database_url: &str) -> anyhow::Result<Self> {
         Ok(Self {
             pool: MySqlPoolOptions::new()
-                .connect_timeout(Duration::from_secs(5))
+                .acquire_timeout(Duration::from_secs(5))
                 .connect(database_url)
                 .await?,
         })
@@ -436,7 +437,7 @@ fn convert_column_value_to_string(row: &MySqlRow, column: &MySqlColumn) -> anyho
         let value: Option<u64> = value;
         Ok(get_or_null!(value))
     } else if let Ok(value) = row.try_get(column_name) {
-        let value: Option<rust_decimal::Decimal> = value;
+        let value: Option<BigDecimal> = value;
         Ok(get_or_null!(value))
     } else if let Ok(value) = row.try_get(column_name) {
         let value: Option<NaiveDate> = value;
